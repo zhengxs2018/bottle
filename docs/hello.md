@@ -538,7 +538,7 @@ const server = http.createServer(function handleRequest(req, res) {
 
 在进行框架开发的时候，也将更加了解到每一行代码的含义和可优化的方向，同时在选择生产项目的框架的时候，也更加明白我们需要应该是一个什么样的功能。
 
-**\[完整代码\]（稍后上传）**
+> 完整代码在项目的 examples/http-server 中
 
 [koa]: https://koajs.com/
 [koa-compose]: https://github.com/koajs/compose
