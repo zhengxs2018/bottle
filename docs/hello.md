@@ -116,23 +116,14 @@ $ Liston on: http://127.0.0.1:8080
 
 `req` 是否个对象，有一个 `req.url` 属性，我们通过这个进行判断。
 
-我们可以通过如下操作，查看这个值的内容（后面将不在提示）：
+但这个属性除了包含路径外，还包含请求参数，也就是它的值可能是 `/login?a=1`。
 
-1. 在 `demo/main.js` 中的代码中写入 `console.log('url:', req.url)`
-2. 打开刚刚的命令行，执行 `ctrl + c` 中断上一个程序，重新执行 `node ./demo/main.js`
-
-我们在浏览器输入 `http://127.0.0.1:8080/login`，此时你的命令行会输出：
-
-```plan
-url: /login
-```
-
-但这个属性除了包含路径外，还包含请求参数，所以我们无法单纯的通过字符串判断来处理请求，也就是无法使用如下方式进行判断 ：
+所以我们无法通过字符串进行判断，如：
 
 ```javascript
 const server = http.createServer((req, res) => {
   // 如果用户输入 http://127.0.0.1:8080/login?a=1
-  // 那么 req.url 就灯语 /login?a=1
+  // 那么 req.url 就是 /login?a=1
   if (req.url === '/login') {
     if (req.method === 'GET') {
       // 渲染网页
@@ -143,7 +134,7 @@ const server = http.createServer((req, res) => {
 })
 ```
 
-虽然我们可以使用其他字符串的操作进行判断，但都比较麻烦，最合适的方式就是使用 [路由](./tutorials/routing.md) ，可以通过阅读 [路由](./tutorials/routing.md) 章节进行开发。
+虽然我们可以使用其他字符串的操作进行处理，但最合适的方式是使用路由 ，可以通过阅读 [路由](./tutorials/routing.md) 章节了解一个路由是如何开发的。
 
 这里我们暂不考虑参数的问题，我们重新组织下代码，就变化成了这个样子：
 
@@ -155,29 +146,34 @@ const server = http.createServer((req, res) => {
 const http = require('http')
 
 function renderHomePage(req, res) {
-  res.end('hello,world')
+  // 将前面的 hello,world 逻辑移动到这里来
 }
 
 function renderLoginPage(req, res) {
-  res.end('This is login page')
+  // 类同
 }
 
 function renderNotfoundPage(req, res) {
-  res.end('not found')
+  // 类同
 }
 
 function handleLogin(req, res) {
+  // http 无法接收 json 对象，但支持字符串
   const data = JSON.stringify({
     code: 200,
     message: 'ok',
   })
+
+  // 设置 Content-Type 让客户端插件可以处理
   res.setHeader('Content-Type', 'application/json')
   res.setHeader('Content-Length', Buffer.byteLength(data))
+
   res.end(data, 'utf8')
 }
 
 // 创建一个 http 服务
 const server = http.createServer(function handleRequest(req, res) {
+  // 暂不考虑参数问题
   switch (req.url) {
     case '/':
       renderHomePage(req, res)
@@ -201,13 +197,13 @@ const server = http.createServer(function handleRequest(req, res) {
 
 ### 2. 请求过程管理
 
-虽然上一节，效果是达到了，但都是直接就响应，真实情况下，在响应前需要进行一些逻辑处理，如：
+虽然上一节效果是达到了，但都是直接就响应，真实情况下，在响应前需要进行一些逻辑处理，如：
 
 1. 判断是否登录
-   1. 未登录，停止响应，不在进行后续处理
+   1. 未登录，直接响应 401，不在进行后续处理
    2. 已登录，继续流转
 2. 判断用户角色
-   1. 当前登录用户没有这个角色，停止响应，不在进行后续处理
+   1. 当前登录用户没有这个角色，直接响应 403 ，不在进行后续处理
    2. 当前登录用户拥有这个角色，继续流转
 
 但这会有先后顺序，如果没有登录，那就不需要进行角色判断了，它们的先后顺序为：
@@ -218,7 +214,9 @@ const server = http.createServer(function handleRequest(req, res) {
 
 **为什么会这样呢？**
 
-是因为 web 程序允许多用户使用，如果不登录，web 程序就不知道该如何提供信息，而不通的角色拥有不同的功能，如 **管理员** 这个角色可以进入后台系统，而 **普通用户** 却不行。
+是因为 web 程序允许多用户使用，如果不登录，web 程序就不知道该如何提供信息。
+
+而不同的角色拥有不同的功能，如 **管理员** 这个角色可以进入后台系统，而 **普通用户** 却不行。
 
 于是，我们的代码就改造成这样了：
 
@@ -232,6 +230,7 @@ function assertLogin(req, res) {
     // 可以使用特殊的异常类
     // 推荐 http-errors 这个 npm 包
     const err = new Error('用户未登录')
+
     // 响应 401 状态码
     err.status = 401
 
@@ -246,14 +245,17 @@ function assertIsAdmin(req, res) {
     // 可以使用特殊的异常类
     // 推荐 http-errors 这个 npm 包
     const err = new Error('权限不足，请联系管理员处理')
+
     // 响应 403 状态码
     err.status = 403
+
     // 由异常拦截的函数进行后续处理
     throw err
   }
 }
 
 const server = http.createServer(function handleRequest(req, res) {
+  // 暂不考虑参数问题
   switch (req.url) {
     case '/':
       // 判断是否登录
@@ -269,8 +271,9 @@ const server = http.createServer(function handleRequest(req, res) {
       // 判断是否管理员
       assertIsAdmin(req, res)
 
-      // 渲染登录页
+      // 渲染管理后台首页
       handleAdminPage(req, res)
+      break
     default:
       renderNotfoundPage(req, res)
   }
@@ -293,7 +296,7 @@ const server = http.createServer(function handleRequest(req, res) {
 
 在 nodejs 中，**express** 因为出现的较早，并且知名程度高，其设计的 api 成为事实上的标准，后面很多的框架，都是参考它的 api。
 
-但随着 `promise` 的普及，加上 `async/await` 的标准化完成，像 [koa][koa] 就大胆的采用 `async/await` 开发中间件的。
+但随着 `promise` 的普及，加上 `async/await` 的标准化完成，像 [koa][koa] 就大胆的采用 `async/await` 开发中间件。
 
 ## 四、静态资源和视图
 
@@ -391,6 +394,7 @@ const server = http.createServer(function handleRequest(req, res) {
 
       // 渲染管理后台首页
       render(res, 'admin/index.html')
+      break
     default:
       renderNotfoundPage(req, res)
   }
@@ -399,7 +403,7 @@ const server = http.createServer(function handleRequest(req, res) {
 
 </details>
 
-我们重启程序后，在浏览器地址栏中输入 `http://127.0.0.1:8080`，就可以看到 `index.html` 里面的内容了。
+我们重启程序后，在浏览器地址栏中输入 `http://127.0.0.1:8080`，就可以看到内容了。
 
 ### 2、 发送静态资源
 
