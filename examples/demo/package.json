@@ -1,0 +1,10 @@
+{
+  "name": "demo",
+  "private": true,
+  "version": "0.1.0",
+  "dependencies": {
+    "nunjucks": "^3.2.3"
+  },
+  "author": "zhengxs <zhengxs2018@foxmail.com>",
+  "license": "MIT"
+}

@@ -1,0 +1,42 @@
+{
+  "name": "@zhengxs/bottle",
+  "version": "0.1.0",
+  "main": "./index.js",
+  "scripts": {
+    "format": "prettier --write '**/*.{js,json,md}'"
+  },
+  "files": [
+    "middlewares",
+    "*.js"
+  ],
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,md}": [
+      "prettier --write \"**/*.{js,json,md}\""
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "koa-compose": "^4.1.0",
+    "mime-types": "^2.1.29",
+    "on-finished": "^2.3.0",
+    "path-to-regexp": "^6.2.0"
+  },
+  "devDependencies": {
+    "prettier": "^2.2.1"
+  },
+  "engines": {
+    "node": ">= 10.x"
+  },
+  "author": {
+    "name": "zhengxs",
+    "email": "zhengxs2018@foxmail.com"
+  },
+  "license": "MIT"
+}
