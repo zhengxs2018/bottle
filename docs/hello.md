@@ -258,9 +258,6 @@ const server = http.createServer(function handleRequest(req, res) {
   // 暂不考虑参数问题
   switch (req.url) {
     case '/':
-      // 判断是否登录
-      assertLogin(req, res)
-
       // 渲染首页
       renderHomePage(req, res)
       break
@@ -379,9 +376,6 @@ function render(res, filename) {
 const server = http.createServer(function handleRequest(req, res) {
   switch (req.url) {
     case '/':
-      // 判断是否登录
-      assertLogin(req, res)
-
       // 渲染首页
       render(res, 'index.html')
       break
@@ -513,9 +507,6 @@ const server = http.createServer(function handleRequest(req, res) {
 
   switch (req.url) {
     case '/':
-      // 判断是否登录
-      assertLogin(req, res)
-
       // 渲染首页
       render(res, 'index.html')
       break
@@ -528,6 +519,7 @@ const server = http.createServer(function handleRequest(req, res) {
 
       // 渲染管理后台首页
       render(res, 'admin/index.html')
+      break
     default:
       renderNotfoundPage(req, res)
   }
